@@ -44,15 +44,14 @@ nRegG = 100
 mfdSp <- structure(1, class='Sphere')
 resSp <- RFPCA(obs_xyz_list, obs_t_list, list(userBwMu=bw, userBwCov=bw * 2, npoly = 3,  nRegGrid = nRegG, kernel=kern, error = FALSE, maxK=K, mfd=mfdSp)) #Performs RFPCA on sparsified observations. 
 
-
+tol <-  0.0001
 
 mu_est <- t(resSp$muWork)
 mu_org_grid <- t(resSp$muObs) #Gets estimated mean function on matrix of dimension (# points in grid) x 3
 
 norm_mu_sphr <- sqrt(mu_org_grid[,1]^2 + mu_org_grid[,2]^2 + mu_org_grid[,3]^2)
-is_on_sphere_mu_sphr <- abs(norm_mu_sphr - 1) < 0.0001
-
-
+is_on_sphere_mu_sphr <- abs(norm_mu_sphr - 1) < tol
+prop_mu_on_sphere_sphr <- sum(is_on_sphere_mu_sphr)/length(is_on_sphere_mu_sphr)
 
 phi <- resSp$phi # nWorkGrid x D x K
 
@@ -216,8 +215,6 @@ U_m0 <- colMeans(dist_sqrd[, 1:K+1])
 FVE <- ((U0 - U_m0)/U0)
 
 FVE_k_d <- formatC(FVE, digits = 4, format = "fg", flag = "#")
-
-
 FVE_to_95 <- FVE >= 0.95
 
 #-----------------------------------------------------------------------------------------------------------------------
@@ -310,9 +307,36 @@ resEu <- RFPCA(obs_xyz_list, obs_t_list, list(userBwMu=bw, userBwCov=bw * 2, npo
 
 mu_est_eu <- t(resEu$muWork)
 mu_est_eu_obs <- t(resEu$muObs)
+
+
+
 norm_eu_mu <- sqrt(  mu_est_eu_obs[,1]^2 + mu_est_eu_obs[,2]^2 +mu_est_eu_obs[,3]^2)
-is_on_sphere_mu_eu <- abs(norm_eu_mu - 1) < 0.0001
+is_on_sphere_mu_eu <- abs(norm_eu_mu - 1) < tol 
+
+
+prop_mu_on_sphere_eu <- 100*(sum(is_on_sphere_mu_eu)/length(is_on_sphere_mu_eu) )
+
 phi_eu <- resEu$phi
+
+phi_eu_obsTrunc <- resEu$phiObsTrunc
+aux <- phi_eu_obsTrunc[, 1, ]^2 + phi_eu_obsTrunc[,2,]^2 + phi_eu_obsTrunc[,3,]^2
+norm_phi_eu <- (sqrt(aux) - ones(no_t, K) ) < tol
+prop_norm_phi_eu <- 100*(colSums(norm_phi_eu)/no_t)
+
+
+##----------------------------------------------------------------------------------------------------
+##A little sanity check, 
+
+phi1_eu <- phi_eu_obsTrunc[,,1]
+aux2 <- phi1_eu[,1]^2 + phi1_eu[,2]^2  + phi1_eu[,3]^2 
+l <- aux[,1]
+l <- l - aux2
+
+##----------------------------------------------------------------------------------------------------
+
+
+
+
 
 eu_obs_df <- data.frame(x = mu_est_eu[,1], y = mu_est_eu[,2], z = mu_est_eu[,3], lbl = rep('mu_est', length(mu_est[,1]))    )
 aux <- mu_est_eu[,1]^2 + mu_est_eu[,2]^2 + mu_est_eu[,3]^2 
