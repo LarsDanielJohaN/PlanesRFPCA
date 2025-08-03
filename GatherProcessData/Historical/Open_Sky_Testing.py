@@ -30,7 +30,7 @@ def main():
     while continues == False:
         try:
             opensky.username = "Lars_Johansson57"
-            opensky.password = "0pen_Sky_N@|se"
+            opensky.password = "0se"
 
 
             #If the following works, well be able to get flight data for every 0.5 seconds
